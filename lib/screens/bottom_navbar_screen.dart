@@ -1,5 +1,6 @@
 import 'package:dhan_manthan/screens/course_list.dart';
 import 'package:dhan_manthan/screens/home_screen.dart';
+import 'package:dhan_manthan/screens/news_screens/news_list.dart';
 import 'package:flutter/material.dart';
 
 class BottomNavbarScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class _BottomNavbarScreenState extends State<BottomNavbarScreen> {
     HomeScreen(),
     CoursesScreen(),
     Center(child: Text('Add Screen', style: TextStyle(fontSize: 24))),
-    Center(child: Text('Notifications Screen', style: TextStyle(fontSize: 24))),
+    NewsListScreen(),
     Center(child: Text('Profile Screen', style: TextStyle(fontSize: 24))),
   ];
 

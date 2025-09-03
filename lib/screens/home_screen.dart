@@ -1,45 +1,42 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dhan_manthan/constant.dart';
+import 'package:dhan_manthan/models/stock_model.dart';
+import 'package:dhan_manthan/providers/stock_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
-import 'package:syncfusion_flutter_charts/charts.dart'; // <-- Syncfusion
+import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-
-  Future<void> _handleSignOut() async {
-    try {
-      await _auth.signOut();
-      await _googleSignIn.disconnect();
-      await _googleSignIn.signOut();
-      print("✅ Logout done");
-    } catch (e) {
-      print("❌ Error during logout: $e");
-    }
-  }
-
-  final List<String> _companies = [
-    "Apple",
-    "Microsoft",
-    "Amazon",
-    "Google",
-    "Tesla",
-    "Meta",
-    "Netflix",
-    "Intel",
-    "Nvidia",
-    "Adobe",
-  ];
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  Map<String, String> indianStocks = {
+    'Reliance Industries': 'RELIANCE.NS',
+    'Tata Consultancy Services': 'TCS.NS',
+    'Infosys': 'INFY.NS',
+    'HDFC Bank': 'HDFCBANK.NS',
+    'ICICI Bank': 'ICICIBANK.NS',
+    'Hindustan Unilever': 'HINDUNILVR.NS',
+    'State Bank of India': 'SBIN.NS',
+    'Bharti Airtel': 'BHARTIARTL.NS',
+    'Larsen & Toubro': 'LT.NS',
+    'Maruti Suzuki': 'MARUTI.NS',
+    'Asian Paints': 'ASIANPAINT.NS',
+    'Wipro': 'WIPRO.NS',
+    'Axis Bank': 'AXISBANK.NS',
+    'Kotak Mahindra Bank': 'KOTAKBANK.NS',
+    'Bajaj Finance': 'BAJFINANCE.NS',
+    'Nestle India': 'NESTLEIND.NS',
+    'Mahindra & Mahindra': 'M&M.NS',
+    'Power Grid Corporation': 'POWERGRID.NS',
+    'Titan Company': 'TITAN.NS',
+    'UltraTech Cement': 'ULTRACEMCO.NS',
+  };
 
   final List<MonthlyExpense> data = [
     MonthlyExpense('Jan', 500),
@@ -56,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     MonthlyExpense('Dec', 900),
   ];
 
-  String? selectedCompany = "Apple";
+  String? selectedCompany = "RELIANCE.NS";
 
   final List<Map<String, String>> marketTrends = [
     {"company": "Apple", "price": "\$175.20", "change": "+1.5%"},
@@ -66,43 +63,14 @@ class _HomeScreenState extends State<HomeScreen> {
     {"company": "Microsoft", "price": "\$325.10", "change": "-0.5%"},
   ];
 
-  // Candlestick dummy data
-  final Map<String, List<CandleData>> stockData = {
-    "Apple": [
-      CandleData(DateTime(2025, 9, 1), 170, 175, 168, 172),
-      CandleData(DateTime(2025, 9, 2), 172, 176, 170, 174),
-      CandleData(DateTime(2025, 9, 3), 174, 178, 172, 177),
-      CandleData(DateTime(2025, 9, 4), 177, 180, 175, 179),
-      CandleData(DateTime(2025, 9, 5), 179, 182, 177, 181),
-    ],
-    "Tesla": [
-      CandleData(DateTime(2025, 9, 1), 710, 720, 705, 715),
-      CandleData(DateTime(2025, 9, 2), 715, 725, 710, 720),
-      CandleData(DateTime(2025, 9, 3), 720, 730, 715, 728),
-    ],
-    "Amazon": [
-      CandleData(DateTime(2025, 9, 1), 3200, 3230, 3190, 3210),
-      CandleData(DateTime(2025, 9, 2), 3210, 3240, 3200, 3230),
-      CandleData(DateTime(2025, 9, 3), 3230, 3250, 3210, 3220),
-    ],
-    "Google": [
-      CandleData(DateTime(2025, 9, 1), 2900, 2950, 2890, 2920),
-      CandleData(DateTime(2025, 9, 2), 2920, 2960, 2910, 2940),
-      CandleData(DateTime(2025, 9, 3), 2940, 2970, 2930, 2950),
-    ],
-    "Microsoft": [
-      CandleData(DateTime(2025, 9, 1), 320, 325, 318, 322),
-      CandleData(DateTime(2025, 9, 2), 322, 327, 321, 325),
-      CandleData(DateTime(2025, 9, 3), 325, 328, 323, 326),
-    ],
-  };
-
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
 
-    List<CandleData> selectedStock =
-        stockData[selectedCompany] ?? stockData["Apple"]!;
+    final List<String> _companies = indianStocks.keys.toList();
+
+    final stockAsyncValue = ref.watch(candleDataProvider(selectedCompany!));
+    final stocListkAsyncValue = ref.watch(stockQuotesProvider);
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 244, 247, 250),
@@ -153,102 +121,144 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    // Dropdown
                     CustomDropdown.search(
                       hintText: "Select a company",
                       items: _companies,
                       excludeSelected: false,
+                      initialItem: _companies[0],
                       onChanged: (value) {
                         setState(() {
-                          selectedCompany = value;
+                          selectedCompany = indianStocks[value];
                         });
-                        print("Selected Company: $value");
                       },
                     ),
                     const SizedBox(height: 10),
-                    // Horizontal scrollable market trend cards
                     SizedBox(
                       height: 120,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: marketTrends.length,
-                        itemBuilder: (context, index) {
-                          final trend = marketTrends[index];
-                          return Container(
-                            width: screenWidth * 0.45,
-                            margin: const EdgeInsets.only(right: 16),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  trend["company"]!,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                      child: SizedBox(
+                        height: 120,
+                        child: stocListkAsyncValue.when(
+                          data: (stocks) {
+                            return ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: stocks.length,
+                              itemBuilder: (context, index) {
+                                final stock = stocks[index];
+                                return Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.45,
+                                  margin: const EdgeInsets.only(right: 16),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  trend["price"]!,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black87,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        stock.symbol,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        "\₹${stock.price.toStringAsFixed(2)}",
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "${stock.changePercent.toStringAsFixed(2)}%",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: stock.changePercent >= 0
+                                              ? Colors.green
+                                              : Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  trend["change"]!,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: trend["change"]!.startsWith('+')
-                                        ? Colors.green
-                                        : Colors.red,
-                                    fontWeight: FontWeight.bold,
+                                );
+                              },
+                            );
+                          },
+                          loading: () {
+                            // Placeholder while loading
+                            return ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: 5,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.45,
+                                  margin: const EdgeInsets.only(right: 16),
+                                  decoration: BoxDecoration(
+                                    color: Colors
+                                        .grey[300], // light grey placeholder
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                                );
+                              },
+                            );
+                          },
+                          error: (err, stack) =>
+                              Center(child: Text("Error loading stocks: $err")),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Candlestick Chart
                     SizedBox(
                       height: 250,
-                      child: SfCartesianChart(
-                        primaryXAxis: DateTimeAxis(),
-                        primaryYAxis: NumericAxis(),
-                        series: <CandleSeries>[
-                          CandleSeries<CandleData, DateTime>(
-                            dataSource: selectedStock,
-                            xValueMapper: (CandleData data, _) => data.date,
-                            lowValueMapper: (CandleData data, _) => data.low,
-                            highValueMapper: (CandleData data, _) => data.high,
-                            openValueMapper: (CandleData data, _) => data.open,
-                            closeValueMapper: (CandleData data, _) =>
-                                data.close,
-                            bullColor: Colors.green,
-                            bearColor: Colors.red,
-                          ),
-                        ],
+                      child: stockAsyncValue.when(
+                        data: (candles) {
+                          if (candles.isEmpty) {
+                            return const Center(
+                              child: Text("No data available"),
+                            );
+                          }
+                          return SfCartesianChart(
+                            primaryXAxis: DateTimeAxis(),
+                            primaryYAxis: NumericAxis(),
+                            series: <CandleSeries>[
+                              CandleSeries<CandleData, DateTime>(
+                                dataSource: candles,
+                                xValueMapper: (CandleData data, _) => data.date,
+                                lowValueMapper: (CandleData data, _) =>
+                                    data.low,
+                                highValueMapper: (CandleData data, _) =>
+                                    data.high,
+                                openValueMapper: (CandleData data, _) =>
+                                    data.open,
+                                closeValueMapper: (CandleData data, _) =>
+                                    data.close,
+                                bullColor: Colors.green,
+                                bearColor: Colors.red,
+                              ),
+                            ],
+                          );
+                        },
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (err, _) => Center(child: Text("Error: $err")),
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 'Track Expense & Debts',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -256,11 +266,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadiusGeometry.circular(12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       onPressed: () {},
-                      child: Text(
+                      child: const Text(
                         "Add Expence",
                         style: TextStyle(
                           color: Colors.white,
@@ -269,17 +279,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadiusGeometry.circular(12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       onPressed: () {},
-                      child: Text(
+                      child: const Text(
                         "Add Debt",
                         style: TextStyle(
                           color: Colors.white,
@@ -290,51 +300,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: Colors.blue)),
-                      ),
-                      child: Center(
-                        child: Text(
-                          "Track Expences",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: Colors.blue)),
-                      ),
-                      child: Center(
-                        child: Text(
-                          "Track Debts",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 150, // constrain the height explicitly
+                      height: 150,
                       child: SfCircularChart(
                         series: <CircularSeries>[
                           DoughnutSeries<MonthlyExpense, String>(
@@ -382,12 +353,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 'Cources You can Try',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               CarouselSlider(
                 options: CarouselOptions(
                   height: 250,
@@ -399,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Builder(
                     builder: (BuildContext context) {
                       return ClipRRect(
-                        borderRadius: BorderRadiusGeometry.circular(30),
+                        borderRadius: BorderRadius.circular(30),
                         child: Container(
                           padding: EdgeInsets.all(10),
                           width: MediaQuery.of(context).size.width,
@@ -410,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Expanded(
                                 child: ClipRRect(
-                                  borderRadius: BorderRadiusGeometry.only(
+                                  borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(18),
                                     topRight: Radius.circular(18),
                                   ),
@@ -448,18 +419,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.bold,
                                                 ),
-                                                softWrap:
-                                                    true, // <-- allows line breaking
-                                                overflow: TextOverflow
-                                                    .visible, // <-- don't clip or fade
+                                                softWrap: true,
+                                                overflow: TextOverflow.visible,
                                               ),
                                               Text(
                                                 "By Arsh Ku. Mandal",
                                                 style: TextStyle(fontSize: 11),
-                                                softWrap:
-                                                    true, // <-- allows line breaking
-                                                overflow: TextOverflow
-                                                    .visible, // <-- don't clip or fade
+                                                softWrap: true,
+                                                overflow: TextOverflow.visible,
                                               ),
                                             ],
                                           ),
@@ -484,8 +451,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ],
                                       ),
                                       Row(
-                                        crossAxisAlignment: CrossAxisAlignment
-                                            .center, // aligns them properly
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
                                           Icon(Icons.currency_rupee, size: 15),
                                           Text(
@@ -528,17 +495,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
-
-// Candle data model
-class CandleData {
-  final DateTime date;
-  final double open;
-  final double high;
-  final double low;
-  final double close;
-
-  CandleData(this.date, this.open, this.high, this.low, this.close);
 }
 
 class MonthlyExpense {
