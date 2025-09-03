@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1047527445608",
+    "project_id": "dhanmanthan-d5cec",
+    "storage_bucket": "dhanmanthan-d5cec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1047527445608:android:a738422f5a5e90e91c17dd",
+        "android_client_info": {
+          "package_name": "com.example.dhan_manthan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1047527445608-rkdjejqggmpeudirdelb2ichke7c1ern.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwA_OE7OYQSc06XQxvSvi-pe5qfltbUtA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1047527445608-rkdjejqggmpeudirdelb2ichke7c1ern.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1047527445608-6ajf6s8rqp33pi1suvj8r21b9r03quo4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.dhanManthan"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
