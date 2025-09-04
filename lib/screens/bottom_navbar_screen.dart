@@ -1,33 +1,54 @@
+import 'package:dhan_manthan/backend/user_api.dart';
+import 'package:dhan_manthan/providers/expense_provider.dart';
+import 'package:dhan_manthan/providers/debts_provider.dart';
+import 'package:dhan_manthan/screens/ai_chat_screen.dart';
 import 'package:dhan_manthan/screens/course_list.dart';
 import 'package:dhan_manthan/screens/home_screen.dart';
 import 'package:dhan_manthan/screens/news_screens/news_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BottomNavbarScreen extends StatefulWidget {
+class BottomNavbarScreen extends ConsumerStatefulWidget {
   const BottomNavbarScreen({super.key});
 
   @override
-  State<BottomNavbarScreen> createState() => _BottomNavbarScreenState();
+  ConsumerState<BottomNavbarScreen> createState() => _BottomNavbarScreenState();
 }
 
-class _BottomNavbarScreenState extends State<BottomNavbarScreen> {
+class _BottomNavbarScreenState extends ConsumerState<BottomNavbarScreen> {
   int _currentIndex = 0;
 
-  // List of screens for each tab
-  final List<Widget> _screens = [
+  final List<Widget> _screens = const [
     HomeScreen(),
     CoursesScreen(),
-    Center(child: Text('Add Screen', style: TextStyle(fontSize: 24))),
+    ChatScreen(),
     NewsListScreen(),
     Center(child: Text('Profile Screen', style: TextStyle(fontSize: 24))),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserAndFetch();
+  }
+
+  Future<void> _checkUserAndFetch() async {
+    final isExist = await UserAPI.checkIfExist();
+    if (!isExist) {
+      await UserAPI.addUser();
+    }
+
+    // 👇 Preload expenses & debts
+    ref.read(expenseProvider.notifier);
+    ref.read(debtsProvider.notifier);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // needed for more than 3 items
+        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,

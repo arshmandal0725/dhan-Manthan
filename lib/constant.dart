@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 Color bgColor = const Color.fromARGB(255, 244, 247, 250);
+final String geminiAPI = "AIzaSyAJWqQbB_omg1QLYvUWtMTqsj3p-Rwrhjk";
 Map<String, dynamic> course = {
   "title": "Personal Finance Mastery ",
   "banner": "https://images.pexels.com/photos/164474/pexels-photo-164474.jpeg",

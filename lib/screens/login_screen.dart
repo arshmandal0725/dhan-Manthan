@@ -1,6 +1,4 @@
-import 'package:dhan_manthan/constants.dart';
 import 'package:dhan_manthan/screens/bottom_navbar_screen.dart';
-import 'package:dhan_manthan/screens/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -49,10 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final constants = Constants(context: context);
-    double screenHeight = constants.height;
-    double screenWidth = constants.width;
-
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Container(
